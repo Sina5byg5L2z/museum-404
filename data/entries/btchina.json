@@ -1,0 +1,47 @@
+{
+  "id": "btchina",
+  "name": "BT中国联盟",
+  "aliases": ["BTChina", "btchina.net"],
+  "category": "media",
+  "era": "bbs",
+  "born": "2003",
+  "died": "2009-12",
+  "peak": "2008",
+  "peak_users": "据学术研究统计，鼎盛期日均访问量超25万次",
+  "death_cause": "policy",
+  "cause_detail": "未持有视听节目许可证，在2009年网络视听整治中被关闭",
+  "epitaph": "一个索引站倒下，BT下载时代替它陪葬。",
+  "story": {
+    "诞生": "BTChina（btchina.net，中文名「BT中国联盟」）于2003年前后上线（一说2002年），由站长黄希威创办，是中国最早的BT种子索引站之一。它本身不存储影视文件，只聚合全网的种子链接，让用户借助BitTorrent协议「人人为我、我为人人」地分发内容。注册无需门槛、完全免费开放，是它区别于同期站点的地方，首页常年的滚动种子列表是用户的每日功课。在没有视频会员、片源稀缺的年代，BT几乎是唯一的公共答案，一部新片登上BT中国，几乎等于一场全国同步的首映。",
+    "巅峰": "据发表在学术期刊上的研究统计，鼎盛时期的BTChina日均访问量超过25万次，长期位居中文BT站点前列，与VeryCD一道构成中国P2P资源分享的两大入口，几乎就是「下载」的同义词。围绕它形成了独特的生态：字幕组、压制组与发布页分工协作，热门剧集从播出到配好中文字幕常常只隔一两天，发布页下的评论区会自发排楼致谢，礼仪与黑话自成一套，美剧、纪录片的中文化链条在这里成型。",
+    "转折": "2009年，监管部门对互联网视听服务开展集中整治，要求提供视听节目服务的网站持有《信息网络传播视听节目许可证》。当年12月4日，黄希威收到域名注销通知，BTChina随即关闭，整个P2P圈一时风声鹤唳。据媒体报道，这一轮整治中先后有数百家BT站点被关闭，BT中国联盟作为其中影响最大的一家，成为这场行动里最响亮的名字。",
+    "终局": "关站当天起，btchina.net再未恢复。当时的官方背景媒体刊文认为，此举有助于正版影视内容的发展；而大量用户在一夜之间失去了最主要的片源入口，「资源去哪了」从此成为中文互联网的年度问题，答案从BT换成网盘，再从网盘换成提取码；许多用户的收藏夹里，至今还留着指向btchina.net的最后一条死链。此后再无规模的中文BT索引站，P2P下载逐渐让位于在线视频。2014年前后射手网、人人影视相继关停时，老网民悼念的，其实是从2009年12月4日就已开始散场的那出戏。"
+  },
+  "moments": [
+    "2009年12月4日：域名注销通知送达当天，btchina.net永远停止解析",
+    "「不存储任何资源」的种子索引站，成了那场整治中最著名的名字",
+    "字幕组×压制组×BT发布页：中国民间影视汉化流水线的中枢"
+  ],
+  "legacy": [
+    "中国P2P分享文化的起点之一，养成了第一代网民「找资源」的习惯",
+    "2009年关站成为网络视听治理的分水岭事件，被此后报道反复引用",
+    "BT生态熄火后，资源获取转向网盘与在线视频，匿名分发文化式微"
+  ],
+  "roundtable": [
+    {"persona": "产品经理", "say": "BTChina的产品极简：一个索引页，没有账号体系，没有推荐算法，壁垒只有社区信任和种子的新鲜度。这也是它的脆弱之处——没有版权、没有重资产，一纸域名注销就能让产品归零。"},
+    {"persona": "老用户", "say": "那年冬天的晚上开机，发现BT中国打不开，第一反应是「又抽风了」，刷新几次才明白是真的没了。后来论坛里那句「BT圈熄灯了」，说的就是这一天。"},
+    {"persona": "投资人", "say": "BTChina几乎没有商业化的空间：广告主不敢投，资本不敢碰，流量再大也只是「灰色流量」。它更像一个公益项目，死于外部环境并不意外——据当年的访谈，站长本人也说并不意外。"},
+    {"persona": "时代观察者", "say": "2009年12月常被看作中文互联网免费分享时代的分水岭：BTChina关闭、VeryCD收缩，随后几年是正版视频平台的崛起。回头看，那不是一夜之间的死亡，而是漫长替换过程的显影。"}
+  ],
+  "consensus": "索引站死得最快，因为它本来就一无所有。",
+  "tears_hint": 4,
+  "related": ["verycd", "shooter"],
+  "tags": ["BT下载", "P2P", "资源站", "2009"],
+  "sources": [
+    {"title": "No Free Lunch", "url": "http://www.bjreview.com/e-mail/2009-12/21/content_236267.htm", "site": "北京周报（Beijing Review）", "date": "2009-12-21"},
+    {"title": "China: Government shuts down BitTorrent sites, netizens distressed", "url": "https://globalvoices.org/2009/12/11/china-shuts-down-bt-sites-netizens-distressed/", "site": "Global Voices", "date": "2009-12-11"},
+    {"title": "版权门BT下载模式堪忧", "url": "https://chinanews.com.cn/it/it-rdzz2/news/2009/12-08/2005644.shtml", "site": "中国新闻网", "date": "2009-12-08"},
+    {"title": "Between formal and informal: The shakeout in China's online video industry", "url": "https://www.researchgate.net/publication/258171002_Between_formal_and_informal_The_shakeout_in_China's_online_video_industry", "site": "ResearchGate（学术论文）"}
+  ],
+  "status": "partially_verified"
+}
