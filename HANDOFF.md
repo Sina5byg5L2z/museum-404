@@ -3,11 +3,12 @@
 > 「404 博物馆」——纪念那些消失的中国互联网产品。
 > 本项目由 GLM 智能体集群在 2026-08-31 的一个 token 额度燃烧任务中建成。你（下一个 AI 或人类）的任务是继续扩馆。**所有生产协议已经验证可跑，照做即可。**
 
-## 一、这是什么 & 现状
+## 一、这是什么 & 现状（2026-08-31 归档时点）
 
 - 纯静态博物馆：每块墓碑 = 有引用的考据叙事 + AI 四视角圆桌复盘 + 互动（时间轴/测验/眼泪指数投票）
 - 线上地址：https://museum-404.pages.dev （自定义域名 `404.kdsic.qzz.io` 见下文「待办」）
-- 数据规模：`data/entries/` 下 64 个词条（跑 `python scripts/validate.py data/entries` 看最新数）
+- 数据规模：**80 个词条、92 道自动测验题、约 3400 万 token 已投入**（全库 `validate.py` 全绿）
+- 已完成批次：W1 全部（社区/社交/音视频/网盘/电商/硬件，48 产品）+ W2 直播 7 + 共享经济 8 + 千团大战 8 + 手机坟场 8
 - 技术栈：零依赖原生 JS SPA（`site/`）+ Python 构建脚本（`scripts/`）+ 每词条一个 JSON（`data/entries/`）
 - 许可：内容 CC BY-SA 4.0，代码 MIT
 
@@ -47,9 +48,7 @@ cd site && python -m http.server 8080     # 本地预览 http://localhost:8080
 
 ## 四、待生产清单（按优先级，可直接拆成 agent 任务）
 
-### W2 剩余（原计划的 6 组，只跑了 2 组）
-- **千团大战**：24券(24quan)、团宝网(tuanbao)、高朋网(gaopeng)、窝窝团(wowo)、千品网(qianpin)、满座网(manzuo)、F团(ftuan)、百度糯米(nuomi) —— 上次任务被中断，这组还没跑
-- **手机坟场**：夏新(amoi)、天语(k-touch)、ZUK(zuk)、360手机(qi-phone)、美图手机(meitu-phone)、大可乐(bigcola)、IUNI(iuni)、8848钛金手机(8848phone，注意与已收录的 8848shop 电商区分)
+### W2 剩余（千团大战✓、手机坟场✓已完成，还剩 3 组）
 - **巨头失败品**：乐视生态(leshi)、91助手(91zhushou)、豌豆荚(wandoujia)、网易博客(163-blog)、百度空间(baidu-kongjian)、雅虎中国(yahoo-cn)、MSN中国(msn-cn)、联众世界(lianzhong)
 - **游戏停服**：泡泡堂(paopaotang)、QQ堂(qqtang)、劲乐团(o2jam)、浩方电竞(haofang)、VS对战平台(vs-battle)、魔剑(shadowbane)、龙与地下城OL国服(ddo-cn)、QQ音速(qqyinsu)
 - **音乐坟场续**：多米音乐(duomi)、音悦Tai(yinyuetai)、巨鲸音乐(top100)、一听(1ting)、九天(9sky)、考拉FM(kaola-fm)、豆瓣FM(douban-fm，半死)、移动MM(mmarket)
