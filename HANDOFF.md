@@ -73,7 +73,7 @@ cd site && python -m http.server 8080     # 本地预览 http://localhost:8080
 ## 五、发布 & 域名
 
 - 部署（已配置好）：`npx wrangler pages deploy site --project-name=museum-404 --branch=main` → https://museum-404.pages.dev
-- 自定义域名 `404.kdsic.qzz.io`：已在 Pages 项目绑定（status 曾为 pending），**只差 DNS**：在 Cloudflare 面板 zone `kdsic.qzz.io` 添加记录 `CNAME | 404 | museum-404.pages.dev | 已代理`。（当时的 API token 无 DNS 写权限；如你手头 token 有 Zone.DNS.Edit 可用 API 建）
+- 自定义域名 `404.kdsic.qzz.io`：已在 Pages 项目绑定（status 曾为 pending）
 - GitHub：仓库尚未建（当时无 gh CLI）。如需镜像：建 repo 后 `git remote add origin … && git push -u origin main`，README 已写好。
 
 ## 六、验收标准（别把馆做歪了）
