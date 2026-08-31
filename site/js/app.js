@@ -1,4 +1,4 @@
-/* 404 博物馆 · SPA */
+/* 404 博物馆 · 互联网碑林 SPA */
 const $app = document.getElementById('app');
 const $footer = document.getElementById('site-footer');
 
@@ -17,7 +17,14 @@ const CAUSE = {
   funding:'资金断裂', fraud:'骗局崩塌', founder:'创始人', market:'市场萎缩',
   merge_absorb:'被并购吸收', other:'其他'
 };
+/* 死因刻印：结构即信息 —— 每座碑的死因收进一方朱印 */
+const SEALS = {
+  policy:'禁', competition:'败', copyright:'权', tech_shift:'替',
+  funding:'资', fraud:'诈', founder:'创', market:'衰',
+  merge_absorb:'并', other:'殁'
+};
 const ERA_ORDER = ['portal','bbs','blog','social','mobile','o2o','stream','agent'];
+const DIR_NO = ['壹','贰','叁','肆','伍','陆','柒','捌'];
 
 let idxCache=null, dbPromise=null, quizCache=null;
 async function idx(){ if(!idxCache){ idxCache=fetch('data/index.json').then(r=>r.json()).then(d=>d.entries); } return idxCache; }
@@ -27,6 +34,7 @@ async function quizData(){ if(!quizCache){ quizCache=fetch('data/quiz.json').the
 const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function life(e){ return (e.born||'????')+' — '+(e.died||'????'); }
 function tearsStars(n){ return '✦'.repeat(n)+'✧'.repeat(5-n); }
+function sealOf(e){ return SEALS[e.death_cause]||'殁'; }
 
 /* ---------- 路由 ---------- */
 addEventListener('hashchange', route);
@@ -47,99 +55,112 @@ async function route(){
 
 /* ---------- 顶栏/页脚 ---------- */
 function nav(seg){
-  const items=[['/','门厅'],['#/museum','墓碑长廊'],['#/timeline','时间轴'],['#/quiz','冲浪测验'],['#/about','关于']];
+  const items=[['/','门厅'],['#/museum','碑林'],['#/timeline','卒年表'],['#/quiz','冲浪测验'],['#/about','关于']];
   return `<header class="top"><div class="wrap">
-    <a class="logo" href="#/"><b>404</b> 博物馆</a>
+    <a class="logo" href="#/"><span class="seal">404</span>博物馆</a>
     <nav class="main">${items.map(([u,t])=>`<a href="${u}" class="${(u==='#'+seg||(u==='/'&&seg===''))?'on':''}">${t}</a>`).join('')}</nav>
   </div></header>`;
 }
 function footer(){
   $footer.innerHTML = `<div class="wrap">
-    <p><b>404 博物馆</b> — 纪念那些消失的中国互联网产品。数据与叙事由 AI 智能体集群考据生成，所有事实性陈述附来源，发现错误欢迎提 issue 修正。</p>
-    <p>内容以 <a href="#/about">CC BY-SA 4.0</a> 提供 · 引用报道版权归原作者所有 · <a href="#/about">生产方法</a></p>
+    <p>404 博物馆 · 互联网碑林 —— 纪念那些消失的中国互联网产品</p>
+    <p>馆藏词条由 AI 智能体集群考据生成，事实性陈述均附来源；发现错误欢迎提 issue 修正。</p>
+    <p><span class="mono">HTTP 404 · NOT FOUND</span> &nbsp;·&nbsp; 内容 <a href="#/about">CC BY-SA 4.0</a> · 引用报道版权归原作者所有 · <a href="#/about">生产方法与勘误</a></p>
     <p>互联网并非永恒。2013 年的网页，38% 已经消失。</p></div>`;
 }
 
-/* ---------- 首页 ---------- */
+/* ---------- 门厅 ---------- */
 async function vHome(){
   const entries = await idx();
   const day = Math.floor(Date.now()/864e5);
   const today = entries[day % entries.length] || entries[0];
   const shuffled = [...entries].sort(()=>Math.random()-.5).slice(0,6);
   const eraCounts = {}; entries.forEach(e=>eraCounts[e.era]=(eraCounts[e.era]||0)+1);
+  /* 楹联：从馆藏碑刻里随手摘两句 */
+  const pick=()=>entries[Math.floor(Math.random()*entries.length)];
+  let c1=pick(), c2=pick(); if(c2.id===c1.id) c2=pick();
   $app.innerHTML = nav('/') + `
   <section class="hero"><div class="wrap">
-    <div class="stat">据中国教育和科研计算机网：2013 年的网页，38% 已不复存在</div>
-    <h1>404 <span class="num">博物馆</span></h1>
-    <p class="sub">纪念那些消失的中国互联网产品。<br>每一块墓碑都有考据、有引用，还有一场 AI 圆桌复盘。</p>
-    <div class="actions">
-      <a class="btn primary" href="#/museum">进入墓碑长廊（${entries.length}）</a>
+    <div class="hero-row">
+      <figure class="couplet l"><p>「${esc(c1.epitaph)}」</p>
+        <figcaption class="src">—— 馆藏 · ${esc(c1.name)}</figcaption></figure>
+      <div class="hero-404">
+        <p class="hero-eyebrow">HTTP 404 · NOT FOUND</p>
+        <h1>404</h1>
+        <span class="seal tall hero-seal">查无此站</span>
+      </div>
+      <figure class="couplet r"><p>「${esc(c2.epitaph)}」</p>
+        <figcaption class="src">—— 馆藏 · ${esc(c2.name)}</figcaption></figure>
+    </div>
+    <p class="hero-sub">纪念那些消失的中国互联网产品。<br>一碑一考据，一碑一场 AI 圆桌复盘。</p>
+    <div class="hero-actions">
+      <a class="btn primary" href="#/museum">进入碑林（${entries.length} 碑）</a>
       <a class="btn" href="#/quiz">测测你是哪年冲浪选手</a>
     </div>
+    <p class="hero-meta">1994 —— 2026 &nbsp;·&nbsp; 馆藏 ${entries.length} 碑 &nbsp;·&nbsp; ${ERA_ORDER.length} 间展室 &nbsp;·&nbsp; 2013 年的网页，38% 已消失</p>
   </div></section>
-  <section class="sec"><div class="wrap"><h2>今日扫墓</h2><p class="desc">每天为你随机开一座碑。</p>
+  <section class="sec"><div class="wrap"><h2>今日扫墓</h2><p class="desc">每天为你开一座碑。</p>
     <a class="today" href="#/e/${today.id}">
-      <div class="stone-mini">🪦</div>
-      <div><h3>${esc(today.name)}</h3><div class="life">${life(today)} · ${CAUSE[today.death_cause]||''}</div>
-      <p>${esc(today.epitaph)}</p></div>
+      <div class="today-main">
+        <p class="eyebrow">今日扫墓 · 每天为你开一座碑</p>
+        <h3>${esc(today.name)}</h3>
+        <p class="life">${life(today)} · <b>死因 · ${CAUSE[today.death_cause]||''}</b></p>
+        <p class="today-epi">${esc(today.epitaph)}</p>
+      </div>
+      <div class="today-side"><div class="v-ept">${esc(today.epitaph)}</div><span class="seal">${sealOf(today)}</span></div>
     </a>
   </div></section>
-  <section class="sec"><div class="wrap"><h2>年代墙</h2><p class="desc">按产品实质死亡的年代分布。</p>
-    <div class="era-wall">${ERA_ORDER.map(k=>{
+  <section class="sec"><div class="wrap"><h2>展室</h2><p class="desc">按产品实质死亡的年代分为八间，依次参观。</p>
+    <div class="gallery-dir">${ERA_ORDER.map((k,i)=>{
       const n=eraCounts[k]||0;
-      return `<div class="era-card" onclick="location.hash='#/museum/${k}'">
-        <div class="yrs">${ERA[k].yrs}</div><div class="nm">${ERA[k].nm}</div>
-        <div class="ct">${n} 座墓碑</div></div>`;}).join('')}
+      return `<button class="dir-row" data-era="${k}">
+        <span class="dir-no">${DIR_NO[i]}</span>
+        <span class="dir-nm">${ERA[k].nm}</span>
+        <span class="dir-dots"></span>
+        <span class="dir-yrs">${ERA[k].yrs}</span>
+        <span class="dir-ct">${n} 碑</span></button>`;}).join('')}
     </div>
   </div></section>
-  <section class="sec"><div class="wrap"><h2>随机参观</h2><p class="desc">博物馆没有导览员，只有命运。</p>
+  <section class="sec"><div class="wrap"><h2>过廊展签</h2><p class="desc">没有导览员，命运替你挑了六座。</p>
     <div class="sec-grid">${shuffled.map(cardHTML).join('')}</div>
-  </div></section>
-  ${footerHTML()}`;
+  </div></section>`;
+  document.querySelectorAll('.dir-row').forEach(b=>b.onclick=()=>{location.hash='#/museum/'+b.dataset.era;});
 }
 function cardHTML(e){
   return `<a class="card" href="#/e/${e.id}">
-    <div class="tears" title="时代眼泪指数">${tearsStars(e.tears_hint||3)}</div>
     <h3>${esc(e.name)}</h3>
-    <div class="life">${life(e)} · ${ERA[e.era]?.nm||''}</div>
-    <div class="epi">${esc(e.epitaph)}</div>
-    <div class="meta"><span class="chip cause">${CAUSE[e.death_cause]||''}</span>
-    ${(e.tags||[]).slice(0,2).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
+    <div class="v-wrap"><div class="v-ept">${esc(e.epitaph)}</div><span class="seal">${sealOf(e)}</span></div>
+    <div class="card-foot"><span class="yrs">${life(e)}</span><span class="tears" title="时代眼泪指数">${tearsStars(e.tears_hint||3)}</span></div>
   </a>`;
 }
-function footerHTML(){
-  return `<footer id="site-footer"><div class="wrap">
-    <p>互联网并非永恒。2013 年的网页，38% 已经消失。</p>
-    <p>数据由 AI 智能体集群考据生成 · 内容 CC BY-SA 4.0 · <a href="#/about">关于与勘误</a></p></div></footer>`;
-}
 
-/* ---------- 长廊 ---------- */
+/* ---------- 碑林 ---------- */
 let museumState={era:'all',cat:'all',cause:'all',q:''};
 async function vMuseum(eraParam){
   if(eraParam && ERA[eraParam]) museumState.era=eraParam;
   const all = await idx();
   $app.innerHTML = nav('#/museum') + `
   <section class="sec"><div class="wrap">
-    <h2>墓碑长廊</h2><p class="desc">共 ${all.length} 座碑。按年代 / 类别 / 死因筛选，或直接搜索。</p>
+    <h2>碑林</h2><p class="desc">共 ${all.length} 座碑。按年代 / 类别 / 死因检索，或直接搜碑。</p>
     <div class="filter-bar">
       <input id="q" placeholder="搜索产品名、别名、标签…" value="${esc(museumState.q)}">
     </div>
-    <div class="filter-bar" id="era-pills"><span class="count-note">年代</span>
+    <div class="filter-bar" id="era-pills"><span class="count-note" style="margin:0">年代</span>
       <span class="pill ${museumState.era==='all'?'on':''}" data-era="all">全部</span>
-      ${ERA_ORDER.map(k=>`<span class="pill ${museumState.era===k?'on':''}" data-era="${k}" title="${ERA[k].yrs}">${ERA[k].yrs.split('–')[0]}s</span>`).join('')}
+      ${ERA_ORDER.map(k=>`<span class="pill ${museumState.era===k?'on':''}" data-era="${k}" title="${ERA[k].nm} ${ERA[k].yrs}">${ERA[k].yrs.split('–')[0]}s</span>`).join('')}
     </div>
-    <div class="filter-bar" id="cat-pills"><span class="count-note">类别</span>
+    <div class="filter-bar" id="cat-pills"><span class="count-note" style="margin:0">类别</span>
       <span class="pill ${museumState.cat==='all'?'on':''}" data-cat="all">全部</span>
       ${[['community','社区'],['social','社交'],['media','媒体'],['music','音乐'],['video','视频'],['game','游戏'],['ecommerce','电商'],['o2o','O2O'],['finance','金融'],['hardware','硬件'],['software','软件'],['webdisk','网盘'],['education','教育'],['tool','工具'],['browser','浏览器'],['other','其他']]
         .map(([k,n])=>`<span class="pill ${museumState.cat===k?'on':''}" data-cat="${k}">${n}</span>`).join('')}
     </div>
-    <div class="filter-bar" id="cause-pills"><span class="count-note">死因</span>
+    <div class="filter-bar" id="cause-pills"><span class="count-note" style="margin:0">死因</span>
       <span class="pill ${museumState.cause==='all'?'on':''}" data-cause="all">全部</span>
       ${Object.entries(CAUSE).map(([k,n])=>`<span class="pill ${museumState.cause===k?'on':''}" data-cause="${k}">${n}</span>`).join('')}
     </div>
     <div class="count-note" id="count"></div>
     <div class="sec-grid" id="grid"></div>
-  </div></section>${footerHTML()}`;
+  </div></section>`;
   const input=document.getElementById('q');
   input.oninput=()=>{museumState.q=input.value;renderGrid(all);};
   document.querySelectorAll('#era-pills .pill').forEach(p=>p.onclick=()=>{museumState.era=p.dataset.era;syncPills();renderGrid(all);});
@@ -159,12 +180,12 @@ function renderGrid(all){
     (museumState.cat==='all'||e.category===museumState.cat) &&
     (museumState.cause==='all'||e.death_cause===museumState.cause) &&
     (!q || [e.name,...(e.aliases||[]),...(e.tags||[])].join(' ').toLowerCase().includes(q)));
-  document.getElementById('count').textContent=`命中 ${list.length} 座碑`;
+  document.getElementById('count').textContent=`命中 ${list.length} 碑`;
   document.getElementById('grid').innerHTML = list.map(cardHTML).join('') ||
-    '<div style="color:var(--ink-faint);padding:30px 0">这里还没有墓碑。</div>';
+    '<div class="empty-note">这里还没有墓碑。</div>';
 }
 
-/* ---------- 词条页 ---------- */
+/* ---------- 碑（词条页） ---------- */
 async function vEntry(id){
   const m = await db();
   const e = m[id];
@@ -174,26 +195,30 @@ async function vEntry(id){
   const prev=list[i-1], next=list[i+1];
   const votes = JSON.parse(localStorage.getItem('m404-votes')||'{}');
   const my = votes[id];
+  const CHAPS=[['壹','诞生'],['贰','巅峰'],['叁','转折'],['肆','终局']];
+  const RT_AV=['产','用','投','观'];
   $app.innerHTML = nav('#/e') + `
   <div class="entry-head"><div class="wrap">
-    <div class="tomb">
-      <div class="r-i-p">REST IN PEACE</div>
+    <a class="backlink" href="#/museum">← 返回碑林</a>
+    <div class="stele">
+      <p class="stele-eyebrow">HTTP 404 · NOT FOUND</p>
       <h1>${esc(e.name)}</h1>
-      <div class="life">${esc(e.born||'????')}<span class="dash">✝</span>${esc(e.died||'????')}</div>
-      <div class="epi">${esc(e.epitaph)}</div>
-      <div class="cause">死因 · <b>${CAUSE[e.death_cause]||''}</b> — ${esc(e.cause_detail||'')}</div>
+      <p class="life">${esc(e.born||'????')}<i>——</i>${esc(e.died||'????')}</p>
+      <p class="epi">「${esc(e.epitaph)}」</p>
+      <p class="cause">死因 · <b>${CAUSE[e.death_cause]||''}</b> — ${esc(e.cause_detail||'')}</p>
+      <span class="seal big stamp">${sealOf(e)}</span>
     </div>
     <div class="vote-row">
-      <span>时代眼泪指数：</span>
+      <span>时代眼泪指数</span>
       <span class="stars">${[1,2,3,4,5].map(n=>`<span class="star ${my&&n<=my?'on':''}" data-n="${n}">✦</span>`).join('')}</span>
       <span id="voted">${my?`你投了 ${my}`:`点击打分`}</span>
     </div>
   </div></div>
   <section class="story"><div class="wrap">
-    <h2><span>壹</span>诞生</h2><p>${esc(e.story['诞生'])}</p>
-    <h2><span>贰</span>巅峰</h2><p>${esc(e.story['巅峰'])}</p>
-    <h2><span>叁</span>转折</h2><p>${esc(e.story['转折'])}</p>
-    <h2><span>肆</span>终局</h2><p>${esc(e.story['终局'])}</p>
+    ${(e.peak||e.peak_users)?`<div class="peak"><span class="peak-k">巅峰时刻</span>
+      <p>${esc([e.peak?'约 '+e.peak:'',e.peak_users||''].filter(Boolean).join(' · '))}</p></div>`:''}
+    ${CHAPS.map(([no,k])=>`<div class="chap"><div class="chap-no">${no}</div>
+      <div><h2>${k}</h2><p>${esc(e.story[k])}</p></div></div>`).join('')}
   </div></section>
   <section class="sec"><div class="wrap">
     <h2 style="text-align:center">名场面</h2>
@@ -201,13 +226,13 @@ async function vEntry(id){
   </div></section>
   ${(e.quotes&&e.quotes.length)?`<section class="sec"><div class="wrap">
     <h2 style="text-align:center">留下的那句话</h2>
-    ${e.quotes.map(q=>`<div class="quote-block"><div class="qt">“${esc(q.text)}”</div><div class="qc">— ${esc(q.context||'')}</div></div>`).join('')}
+    ${e.quotes.map(q=>`<div class="quote-block"><div class="qt">「${esc(q.text)}」</div><div class="qc">—— ${esc(q.context||'')}</div></div>`).join('')}
   </div></section>`:''}
   <section class="sec"><div class="wrap">
     <h2 style="text-align:center">AI 圆桌复盘</h2>
     <p class="desc" style="text-align:center">四个视角，围着这块碑聊了聊它为什么死。</p>
     <div class="roundtable">${e.roundtable.map((r,i)=>`
-      <div class="rt p${i+1}"><div class="avatar">${['📐','🕯️','💰','⏳'][i]}</div>
+      <div class="rt"><div class="avatar">${RT_AV[i]||'观'}</div>
       <div class="bubble"><div class="who">${esc(r.persona)}</div><div class="say">${esc(r.say)}</div></div></div>`).join('')}
     </div>
     <div class="consensus">${esc(e.consensus)}</div>
@@ -221,13 +246,13 @@ async function vEntry(id){
     <ul class="sources">${e.sources.map(s=>`<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>
       <span class="site">· ${esc(s.site)}${s.date?' · '+esc(s.date):''}</span></li>`).join('')}</ul>
     ${e.status==='partially_verified'?'<div class="status-note">⚠️ 本词条部分事实仍待进一步考证（status: partially_verified），欢迎提供线索。</div>':''}
-    ${(e.related&&e.related.length)?`<div style="text-align:center;margin-top:20px"><h2 style="text-align:center">一并参观</h2>
+    ${(e.related&&e.related.length)?`<div style="text-align:center;margin-top:22px"><h2 style="text-align:center">一并参观</h2>
       <div class="related-row">${e.related.map(r=>m[r]?`<a href="#/e/${r}">${esc(m[r].name)}</a>`:'').join('')}</div></div>`:''}
     <div class="prevnext">
       ${prev?`<a href="#/e/${prev.id}">← 更早的碑<span>${esc(prev.name)}</span></a>`:'<span></span>'}
       ${next?`<a class="next" href="#/e/${next.id}">更近的碑 →<span>${esc(next.name)}</span></a>`:'<span></span>'}
     </div>
-  </div></section>${footerHTML()}`;
+  </div></section>`;
   document.querySelectorAll('.star').forEach(s=>s.onclick=()=>{
     votes[id]=+s.dataset.n; localStorage.setItem('m404-votes',JSON.stringify(votes));
     document.querySelectorAll('.star').forEach(x=>x.classList.toggle('on',+x.dataset.n<=votes[id]));
@@ -235,7 +260,7 @@ async function vEntry(id){
   });
 }
 
-/* ---------- 时间轴 ---------- */
+/* ---------- 卒年表 ---------- */
 async function vTimeline(){
   const all=await idx();
   const byYear={};
@@ -245,30 +270,31 @@ async function vTimeline(){
   const cols=[]; for(let y=t0;y<=t1;y++) cols.push(y);
   $app.innerHTML=nav('#/timeline')+`
   <section class="sec"><div class="wrap">
-    <h2>死亡时间轴</h2><p class="desc">把每座碑钉在它退场的年份上。悬停圆点，点击产品名。</p>
+    <h2>卒年表</h2><p class="desc">把每座碑钉在它退场的年份上。悬停方印，点击碑名。</p>
     <div class="timeline"><div class="tl-track">
       ${cols.map(y=>`<div class="tl-year"><div class="yr">${y}</div><div class="dot" title="${(byYear[y]||[]).map(e=>e.name).join('、')}"></div>
         <div class="names">${(byYear[y]||[]).slice(0,8).map(e=>`<a href="#/e/${e.id}">${esc(e.name)}</a>`).join('')}</div></div>`).join('')}
     </div></div>
-  </div></section>${footerHTML()}`;
+  </div></section>`;
 }
 
-/* ---------- 测验 ---------- */
+/* ---------- 冲浪测验 ---------- */
 async function vQuiz(){
   const allQ=await quizData();
   if(!allQ.length){ $app.innerHTML=nav('#/quiz')+'<div class="loading">题库还在施工中…</div>'; return; }
   const qs=[...allQ].sort(()=>Math.random()-.5).slice(0,10);
+  const KEYS=['甲','乙','丙','丁'];
   let i=0, score=0, eras=[];
   $app.innerHTML=nav('#/quiz')+`<section class="sec"><div class="wrap">
     <h2 style="text-align:center">冲浪测验</h2><p class="desc" style="text-align:center">10 道题，测测你是哪一年的冲浪选手。</p>
-    <div class="quiz-box" id="qb"></div></div></section>${footerHTML()}`;
+    <div class="quiz-box" id="qb"></div></div></section>`;
   const qb=document.getElementById('qb');
   function renderQ(){
     const q=qs[i];
     const opts=[{t:q.a,ok:true},...q.wrong.map(w=>({t:w,ok:false}))].sort(()=>Math.random()-.5);
     qb.innerHTML=`<div class="quiz-bar"><i style="width:${i/qs.length*100}%"></i></div>
       <div class="qno">第 ${i+1} 题 / ${qs.length}</div><h3>${esc(q.q)}</h3>
-      ${opts.map((o,j)=>`<button class="opt" data-j="${j}">${esc(o.t)}</button>`).join('')}`;
+      ${opts.map((o,j)=>`<button class="opt" data-j="${j}"><span class="key">${KEYS[j]}</span>${esc(o.t)}</button>`).join('')}`;
     qb.querySelectorAll('.opt').forEach(btn=>btn.onclick=()=>{
       const pick=opts[+btn.dataset.j];
       qb.querySelectorAll('.opt').forEach((b,j)=>{ if(opts[j].ok) b.classList.add('correct'); });
@@ -290,10 +316,11 @@ async function vQuiz(){
       agent:['AI 时代新人类','你出生就在线上，博物馆对你来说是考古现场。']};
     const t=titles[mainEra]||titles['stream'];
     qb.innerHTML=`<div class="quiz-result">
+      <span class="seal tall stamp">已鉴定</span>
       <div class="qno">答对 ${score} / ${qs.length}</div>
       <div class="title">${t[0]}</div>
       <div class="desc">${t[1]}</div>
-      <div class="actions" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <div class="actions">
         <button class="btn" id="copy">复制战报分享</button>
         <button class="btn" id="again">再测一次</button></div>
     </div>`;
@@ -323,7 +350,7 @@ function vAbout(){
     <p>本项目原创内容（词条叙事、圆桌复盘）以 <strong>CC BY-SA 4.0</strong> 提供；引用的新闻标题与链接版权归原作者所有，引用仅为说明事实来源。本项目不做任何商业用途。</p>
     <h2>为什么做这个</h2>
     <p>2013 年的网页，38% 已经消失。小鸡词典停服时，人们发现连「查梗」的地方都会一夜蒸发。我们不抢救数据——我们只希望当产品消失时，至少有块碑解释它曾经来过。</p>
-  </div></div></section>${footerHTML()}`;
+  </div></div></section>`;
 }
 
 footer(); route();

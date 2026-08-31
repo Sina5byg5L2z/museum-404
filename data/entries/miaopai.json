@@ -38,7 +38,7 @@
   ],
   "consensus": "寄生的流量帝国，随宿主转身而崩塌。",
   "tears_hint": 4,
-  "related": ["vue-vlog", "weishi", "huomao"],
+  "related": ["vue-vlog", "huomao"],
   "tags": ["短视频", "微博", "一下科技", "外链失效", "下架整改"],
   "sources": [
     {"title": "新浪微博领投一下科技5亿美元融资", "url": "https://companies.caixin.com/m/2016-11-21/101009783.html", "site": "财新网", "date": "2016-11-21"},
