@@ -76,8 +76,8 @@ v1.0 已达成（207），扩馆不封顶。已验证好写、来源充分的候
 ## 五、发布 & 域名
 
 - 部署（已配置好）：`npx wrangler pages deploy site --project-name=museum-404 --branch=main` → https://museum-404.pages.dev
-- 自定义域名 `404.kdsic.qzz.io`：已在 Pages 项目绑定（status 曾为 pending）
-- GitHub：仓库尚未建（当时无 gh CLI）。如需镜像：建 repo 后 `git remote add origin … && git push -u origin main`，README 已写好。
+- 自定义域名 `404.kdsic.qzz.io`：已绑定并生效（2026-08-31 验证 HTTPS 200）
+- GitHub 镜像：https://github.com/Sina5byg5L2z/museum-404 （remote `origin` 已配置，本地分支 `main` 跟踪 `origin/main`；推送：`git push origin main`）。注意：Pages 部署仍是直传 `wrangler pages deploy site`，未接 GitHub 自动构建。
 
 ## 六、验收标准（别把馆做歪了）
 
