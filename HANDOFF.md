@@ -7,8 +7,8 @@
 
 - 纯静态博物馆：每块墓碑 = 有引用的考据叙事 + AI 四视角圆桌复盘 + 互动（时间轴/测验/眼泪指数投票）
 - 线上地址：https://museum-404.pages.dev （自定义域名 `404.kdsic.qzz.io` 见下文「待办」）
-- 数据规模：**148 个词条、160 道自动测验题**（2026-08-31 接续批次后，全库 `validate.py` 全绿）
-- 已完成批次：W1 全部（48 产品）+ W2 全部（直播 7 + 共享经济 8 + 千团大战 8 + 手机坟场 8 + 巨头失败品 7 + 游戏停服 7 + 音乐坟场续 8）+ W3 全部（P2P图鉴 6 + O2O上门 7 + 出行门户 7 + 字幕组半死 7 + 软件眼泪 7 + 双减网盘 7 + 社交AI 5）
+- 数据规模：**159 个词条、171 道自动测验题**（2026-08-31 接续批次后，全库 `validate.py` 全绿）
+- 已完成批次：W1 全部 + W2 全部（31 词条）+ W3 全部（46 词条）+ W4（文学旅游 6 + 长租游戏VR 5）
 - 诚实跳过记录：联众世界、泡泡堂仍在运营，不收录；AI 创企 7 候选仅光年之外符合「从严死亡」标准（零一万物/衔远/深言/澜舟/MiniMax/百川/阶跃均存续）；豆瓣FM、VIPKID、115、河狸家、易到、傲游、瑞星、江民等按半死 partially_verified 收录
 - 技术栈：零依赖原生 JS SPA（`site/`）+ Python 构建脚本（`scripts/`）+ 每词条一个 JSON（`data/entries/`）
 - 许可：内容 CC BY-SA 4.0，代码 MIT
@@ -40,7 +40,6 @@ cd site && python -m http.server 8080     # 本地预览 http://localhost:8080
 
 ### 关键坑（血泪换来的）
 
-- **subagent 并发上限 = 1**：并行发多个 agent 会收到 `user concurrency limit exceeded`，只有 1 个能跑。**严格串行**，一批完成 commit 后再发下一批。
 - **WebSearch 会偶发 captcha/超时**：重试即可；agent 若因故中断，检查 `data/entries/` 有没有半成品 JSON（`for f in data/entries/*.json; do python -c "import json;json.load(open('$f',encoding='utf-8'))" || echo BROKEN $f; done`），坏的移到 `data/drafts/`，下批 agent 可参考草稿但必须重新考据。
 - **禁止编造**：URL 必须来自真实搜索结果；日期数字必须有来源；拿不准 → `status: "partially_verified"`。
 - **诚实跳过**：产品还活着（如微视转型短剧）就跳过并说明，禁止硬写成死亡。
