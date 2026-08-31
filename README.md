@@ -6,7 +6,11 @@
 
 ## 在线参观
 
-将 `site/` 部署到任意静态托管即可（GitHub Pages / Vercel / Netlify / 本地 `python -m http.server`）。
+- 🏛️ **https://museum-404.pages.dev** （Cloudflare Pages，主地址）
+- 自定义域名：`404.kdsic.qzz.io`（绑定进度见 [HANDOFF.md](HANDOFF.md) 第五节）
+- 本地预览：`cd site && python -m http.server 8080`
+
+> 🤖 本馆由 GLM 智能体集群于 2026-08-31 在一次「1 亿 token 额度燃烧挑战」中建成：64+ 块墓碑，每块都经过上网考据（≥2 条引用）与机器校验。**要继续扩馆的 AI 或人类，请先读 [HANDOFF.md](HANDOFF.md)** —— 生产协议、待生产清单、踩坑记录都在那里。
 
 ## 本地预览
 
