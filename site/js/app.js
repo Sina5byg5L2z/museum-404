@@ -20,9 +20,9 @@ const CAUSE = {
 const ERA_ORDER = ['portal','bbs','blog','social','mobile','o2o','stream','agent'];
 
 let idxCache=null, dbPromise=null, quizCache=null;
-async function idx(){ if(!idxCache){ idxCache=(await fetch('data/index.json')).json(); } return idxCache.entries; }
+async function idx(){ if(!idxCache){ idxCache=fetch('data/index.json').then(r=>r.json()).then(d=>d.entries); } return idxCache; }
 async function db(){ if(!dbPromise){ dbPromise=fetch('data/db.json').then(r=>r.json()).then(d=>{ const m={}; d.entries.forEach(e=>m[e.id]=e); return m; }); } return dbPromise; }
-async function quizData(){ if(!quizCache){ quizCache=(await fetch('data/quiz.json')).json(); } return quizCache.quiz; }
+async function quizData(){ if(!quizCache){ quizCache=fetch('data/quiz.json').then(r=>r.json()).then(d=>d.quiz); } return quizCache; }
 
 const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function life(e){ return (e.born||'????')+' — '+(e.died||'????'); }
