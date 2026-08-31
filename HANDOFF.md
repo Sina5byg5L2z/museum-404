@@ -7,8 +7,9 @@
 
 - 纯静态博物馆：每块墓碑 = 有引用的考据叙事 + AI 四视角圆桌复盘 + 互动（时间轴/测验/眼泪指数投票）
 - 线上地址：https://museum-404.pages.dev （自定义域名 `404.kdsic.qzz.io` 见下文「待办」）
-- 数据规模：**80 个词条、92 道自动测验题、约 3400 万 token 已投入**（全库 `validate.py` 全绿）
-- 已完成批次：W1 全部（社区/社交/音视频/网盘/电商/硬件，48 产品）+ W2 直播 7 + 共享经济 8 + 千团大战 8 + 手机坟场 8
+- 数据规模：**102 个词条、114 道自动测验题**（2026-08-31 接续批次后，全库 `validate.py` 全绿）
+- 已完成批次：W1 全部（48 产品）+ W2 全部（直播 7 + 共享经济 8 + 千团大战 8 + 手机坟场 8 + 巨头失败品 7 + 游戏停服 7 + 音乐坟场续 8）
+- 诚实跳过记录：联众世界、泡泡堂仍在运营，不收录；豆瓣FM按半死 partially_verified 收录
 - 技术栈：零依赖原生 JS SPA（`site/`）+ Python 构建脚本（`scripts/`）+ 每词条一个 JSON（`data/entries/`）
 - 许可：内容 CC BY-SA 4.0，代码 MIT
 
@@ -48,10 +49,7 @@ cd site && python -m http.server 8080     # 本地预览 http://localhost:8080
 
 ## 四、待生产清单（按优先级，可直接拆成 agent 任务）
 
-### W2 剩余（千团大战✓、手机坟场✓已完成，还剩 3 组）
-- **巨头失败品**：乐视生态(leshi)、91助手(91zhushou)、豌豆荚(wandoujia)、网易博客(163-blog)、百度空间(baidu-kongjian)、雅虎中国(yahoo-cn)、MSN中国(msn-cn)、联众世界(lianzhong)
-- **游戏停服**：泡泡堂(paopaotang)、QQ堂(qqtang)、劲乐团(o2jam)、浩方电竞(haofang)、VS对战平台(vs-battle)、魔剑(shadowbane)、龙与地下城OL国服(ddo-cn)、QQ音速(qqyinsu)
-- **音乐坟场续**：多米音乐(duomi)、音悦Tai(yinyuetai)、巨鲸音乐(top100)、一听(1ting)、九天(9sky)、考拉FM(kaola-fm)、豆瓣FM(douban-fm，半死)、移动MM(mmarket)
+### W2 剩余：已全部完成 ✓（巨头失败品、游戏停服、音乐坟场续均于 2026-08-31 接续批次完成）
 
 ### W3 专题（更有叙事价值）
 - **P2P/骗局图鉴**（慎写：只陈述判决与通报事实）：e租宝(ezubo)、钱宝网(qianbao)、红岭创投(hongling)、蛋壳公寓(danke)、善林金融、唐小僧
