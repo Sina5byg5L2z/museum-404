@@ -4,14 +4,29 @@
 window.M404AI = (() => {
   const LSC='m404-ai-cfg', LSH='m404-ai-chat';
   const PRESETS = {
-    custom:    {nm:'自定义（OpenAI 兼容）', base:'', model:''},
-    zhipu:     {nm:'智谱 GLM',       base:'https://open.bigmodel.cn/api/paas/v4', model:'glm-4-flash'},
+    siliconflow:{nm:'硅基流动 SiliconFlow', base:'https://api.siliconflow.cn/v1', model:'deepseek-ai/DeepSeek-V3'},
     deepseek:  {nm:'DeepSeek',       base:'https://api.deepseek.com/v1', model:'deepseek-chat'},
+    zhipu:     {nm:'智谱 GLM',       base:'https://open.bigmodel.cn/api/paas/v4', model:'glm-4-flash'},
     moonshot:  {nm:'月之暗面 Kimi',  base:'https://api.moonshot.cn/v1', model:'moonshot-v1-8k'},
     dashscope: {nm:'阿里通义千问',   base:'https://dashscope.aliyuncs.com/compatible-mode/v1', model:'qwen-plus'},
+    doubao:    {nm:'字节豆包 · 火山方舟', base:'https://ark.cn-beijing.volces.com/api/v3', model:'doubao-1.5-pro-32k'},
+    hunyuan:   {nm:'腾讯混元',       base:'https://api.hunyuan.cloud.tencent.com/v1', model:'hunyuan-turbos-latest'},
+    qianfan:   {nm:'百度千帆',       base:'https://qianfan.baidubce.com/v2', model:'ernie-4.0-8k-latest'},
+    lingyi:    {nm:'零一万物',       base:'https://api.lingyiwanwu.com/v1', model:'yi-lightning'},
     openai:    {nm:'OpenAI',         base:'https://api.openai.com/v1', model:'gpt-4o-mini'},
     openrouter:{nm:'OpenRouter',     base:'https://openrouter.ai/api/v1', model:'openrouter/auto'},
+    groq:      {nm:'Groq',           base:'https://api.groq.com/openai/v1', model:'llama-3.3-70b-versatile'},
+    ollama:    {nm:'Ollama（本机）',  base:'http://127.0.0.1:11434/v1', model:'qwen2.5:7b'},
+    lmstudio:  {nm:'LM Studio（本机）', base:'http://127.0.0.1:1234/v1', model:'local-model'},
+    custom:    {nm:'自定义（任意 OpenAI 兼容端点）', base:'', model:''},
   };
+  const PRESET_GROUPS = [
+    ['常用', ['siliconflow','deepseek','zhipu','moonshot']],
+    ['国内其他', ['dashscope','doubao','hunyuan','qianfan','lingyi']],
+    ['海外', ['openai','openrouter','groq']],
+    ['本机 · 免密钥', ['ollama','lmstudio']],
+    ['其他', ['custom']],
+  ];
   const DEFAULT_SYS =
 `你是「404博物馆」的 AI 讲解员。这座线上博物馆纪念消失的中国互联网产品，每座碑记录一个产品的诞生、巅峰、转折与终局，事实性陈述均附公开报道来源。
 
@@ -264,7 +279,7 @@ window.M404AI = (() => {
         <div class="ai-modal-head"><h3>接入 AI 讲解员</h3><button class="ai-x" id="ai-x" aria-label="关闭">×</button></div>
         <p class="ai-modal-sub">任意 OpenAI 兼容接口。密钥只存你的浏览器，请求由浏览器直连服务商，不经本站。</p>
         <label class="ai-f">服务商预设
-          <select id="ai-preset">${Object.entries(PRESETS).map(([k,p])=>`<option value="${k}">${esc(p.nm)}</option>`).join('')}</select></label>
+          <select id="ai-preset">${PRESET_GROUPS.map(([g,keys])=>`<optgroup label="${esc(g)}">${keys.map(k=>`<option value="${k}">${esc(PRESETS[k].nm)}</option>`).join('')}</optgroup>`).join('')}</select></label>
         <label class="ai-f">接口地址 Base URL <input id="ai-base" placeholder="https://api.deepseek.com/v1"></label>
         <label class="ai-f">API Key <span class="ai-key-row"><input id="ai-key" type="password" placeholder="本地服务可留空"><button type="button" class="btn sm" id="ai-eye">显示</button></span></label>
         <label class="ai-f">模型名称 <input id="ai-model" placeholder="deepseek-chat"></label>
@@ -323,7 +338,7 @@ window.M404AI = (() => {
     };
   }
   function fillForm(c){
-    document.getElementById('ai-preset').value=c.provider||'custom';
+    document.getElementById('ai-preset').value=c.provider||'siliconflow';
     document.getElementById('ai-base').value=c.baseUrl||'';
     document.getElementById('ai-key').value=c.apiKey||'';
     document.getElementById('ai-model').value=c.model||'';
