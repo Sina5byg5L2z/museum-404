@@ -4,7 +4,8 @@
 window.M404AI = (() => {
   const LSC='m404-ai-cfg', LSH='m404-ai-chat';
   const PRESETS = {
-    siliconflow:{nm:'硅基流动 SiliconFlow', base:'https://api.siliconflow.cn/v1', model:'deepseek-ai/DeepSeek-V3'},
+    siliconflow:{nm:'硅基流动 SiliconFlow', base:'https://api.siliconflow.cn/v1', model:'Qwen/Qwen3-8B'},
+    mimo:      {nm:'小米 MiMo',      base:'https://api.xiaomimimo.com/v1', model:'mimo-v2-flash'},
     deepseek:  {nm:'DeepSeek',       base:'https://api.deepseek.com/v1', model:'deepseek-chat'},
     zhipu:     {nm:'智谱 GLM',       base:'https://open.bigmodel.cn/api/paas/v4', model:'glm-4-flash'},
     moonshot:  {nm:'月之暗面 Kimi',  base:'https://api.moonshot.cn/v1', model:'moonshot-v1-8k'},
@@ -21,7 +22,7 @@ window.M404AI = (() => {
     custom:    {nm:'自定义（任意 OpenAI 兼容端点）', base:'', model:''},
   };
   const PRESET_GROUPS = [
-    ['常用', ['siliconflow','deepseek','zhipu','moonshot']],
+    ['常用', ['siliconflow','mimo','deepseek','zhipu','moonshot']],
     ['国内其他', ['dashscope','doubao','hunyuan','qianfan','lingyi']],
     ['海外', ['openai','openrouter','groq']],
     ['本机 · 免密钥', ['ollama','lmstudio']],
