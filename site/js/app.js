@@ -48,6 +48,7 @@ async function route(){
     else if(seg==='e') await vEntry(arg);
     else if(seg==='timeline') await vTimeline();
     else if(seg==='quiz') await vQuiz();
+    else if(seg==='ai'){ if(window.M404AI) await window.M404AI.view(); else await vHome(); }
     else if(seg==='about') vAbout();
     else vHome();
   }catch(ex){ $app.innerHTML = '<div class="loading">展品暂时打不开…<br><small>'+esc(ex)+'</small></div>'; }
@@ -55,7 +56,7 @@ async function route(){
 
 /* ---------- 顶栏/页脚 ---------- */
 function nav(seg){
-  const items=[['/','门厅'],['#/museum','碑林'],['#/timeline','卒年表'],['#/quiz','冲浪测验'],['#/about','关于']];
+  const items=[['/','门厅'],['#/museum','碑林'],['#/timeline','卒年表'],['#/quiz','冲浪测验'],['#/ai','AI 问答'],['#/about','关于']];
   return `<header class="top"><div class="wrap">
     <a class="logo" href="#/"><span class="seal">404</span>博物馆</a>
     <nav class="main">${items.map(([u,t])=>`<a href="${u}" class="${(u==='#'+seg||(u==='/'&&seg===''))?'on':''}">${t}</a>`).join('')}</nav>
@@ -236,6 +237,7 @@ async function vEntry(id){
       <div class="bubble"><div class="who">${esc(r.persona)}</div><div class="say">${esc(r.say)}</div></div></div>`).join('')}
     </div>
     <div class="consensus">${esc(e.consensus)}</div>
+    <div style="text-align:center;margin-top:20px"><button class="btn" id="ask-ai-btn">就此碑询问 AI 讲解员 →</button></div>
   </div></section>
   <section class="sec"><div class="wrap">
     <h2 style="text-align:center">遗产</h2>
@@ -258,6 +260,11 @@ async function vEntry(id){
     document.querySelectorAll('.star').forEach(x=>x.classList.toggle('on',+x.dataset.n<=votes[id]));
     document.getElementById('voted').textContent=`你投了 ${votes[id]} · 谢谢扫墓`;
   });
+  const askBtn=document.getElementById('ask-ai-btn');
+  if(askBtn) askBtn.onclick=()=>{
+    sessionStorage.setItem('m404-ai-prefill',`请给我讲讲「${e.name}」:它怎么起家,又为什么死?`);
+    location.hash='#/ai';
+  };
 }
 
 /* ---------- 卒年表 ---------- */

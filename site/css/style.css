@@ -332,3 +332,68 @@ footer .mono{font-family:var(--mono);font-size:11px;letter-spacing:.1em}
   .seal.stamp,.seal.big.stamp,.quiz-result .seal.tall.stamp{animation:none}
   .card,.card .v-wrap .seal,.star,.dot{transition:none}
 }
+
+/* ============================================================
+   AI 问事处 · BYOK 浏览器直连
+   ============================================================ */
+.ai-sec .wrap{max-width:820px}
+.ai-head{display:flex;align-items:center;gap:10px;margin:18px 0 12px;flex-wrap:wrap}
+.ai-chip{font-family:var(--mono);font-size:12px;color:var(--jade);border:1px solid var(--jade);
+  padding:4px 10px;border-radius:3px;background:rgba(94,114,104,.08)}
+.ai-chip.off{color:var(--ink-3);border-color:var(--line);background:none}
+.btn.sm{padding:5px 14px;font-size:13px}
+.ai-msgs{border:1px solid var(--line);background:var(--paper-hi);border-radius:4px;
+  height:min(52vh,460px);overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.ai-msg{display:flex;flex-direction:column;max-width:88%}
+.ai-msg.user{align-self:flex-end;align-items:flex-end}
+.ai-who{font-size:11px;color:var(--ink-3);letter-spacing:2px;margin:0 4px 4px;font-family:var(--serif)}
+.ai-msg.user .ai-who{color:var(--seal)}
+.ai-body{padding:10px 14px;border-radius:4px;font-size:14.5px;line-height:1.85;white-space:pre-wrap;
+  word-break:break-word}
+.ai-msg.user .ai-body{background:var(--ink);color:var(--paper-hi);border-bottom-right-radius:1px}
+.ai-msg.assistant .ai-body{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--seal);
+  border-bottom-left-radius:1px}
+.ai-msg.err .ai-body{border-left-color:var(--gold);color:#7A4A12;background:#F3EDDD}
+.ai-body.typing:after{content:"▍";color:var(--seal);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.ai-cites{font-size:12px;color:var(--ink-3);margin-top:6px;padding:0 4px}
+.ai-cites a{margin-right:2px}
+.ai-input-row{display:flex;gap:10px;margin-top:12px;align-items:flex-end}
+.ai-input-row textarea{flex:1;resize:none;border:1px solid var(--line);background:var(--paper-hi);
+  border-radius:4px;padding:11px 14px;font:inherit;font-size:14.5px;line-height:1.6;color:var(--ink);min-height:46px}
+.ai-input-row textarea:focus{border-color:var(--ink-3);outline:none}
+.ai-suggest{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.ai-suggest-label{font-size:12px;color:var(--ink-3);font-family:var(--serif);letter-spacing:1px}
+.ai-chip-q{border:1px dashed var(--line);background:none;color:var(--ink-2);border-radius:3px;
+  padding:4px 12px;font-size:12.5px;cursor:pointer}
+.ai-chip-q:hover{border-color:var(--seal);color:var(--seal)}
+.ai-note{font-size:12px;color:var(--ink-3);margin-top:10px;text-align:center}
+
+/* ---------- 配置弹窗 ---------- */
+#ai-mask{position:fixed;inset:0;z-index:200;background:rgba(33,30,25,.45);
+  display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+#ai-mask[hidden]{display:none}
+.ai-modal{background:var(--paper-hi);border:1px solid var(--line);border-top:4px solid var(--seal);
+  border-radius:4px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;
+  padding:24px 26px;box-shadow:0 18px 50px rgba(33,30,25,.25)}
+.ai-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.ai-modal-head h3{font-family:var(--serif);font-size:19px;letter-spacing:2px}
+.ai-x{background:none;border:none;font-size:24px;line-height:1;color:var(--ink-3);cursor:pointer;padding:2px 6px}
+.ai-x:hover{color:var(--seal)}
+.ai-modal-sub{font-size:12.5px;color:var(--ink-3);margin-bottom:16px}
+.ai-f{display:block;font-size:13px;color:var(--ink-2);margin-bottom:13px}
+.ai-f input[type=text],.ai-f input[type=password],.ai-f input:not([type]),.ai-f select,.ai-f textarea{
+  display:block;width:100%;margin-top:5px;border:1px solid var(--line);background:var(--paper);
+  border-radius:3px;padding:9px 11px;font:inherit;font-size:13.5px;color:var(--ink)}
+.ai-f textarea{font-size:12.5px;line-height:1.7;resize:vertical}
+.ai-f input:focus,.ai-f select:focus,.ai-f textarea:focus{border-color:var(--ink-3);outline:none}
+.ai-key-row{display:flex;gap:8px;margin-top:5px;align-items:center}
+.ai-key-row input{flex:1;margin-top:0!important}
+.ai-key-row input[type=range]{flex:1;margin-top:0;accent-color:var(--seal);padding:0}
+.ai-restore{float:right;background:none;border:none;color:var(--seal);font-size:12px;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px}
+.ai-modal-foot{display:flex;align-items:center;gap:10px;margin-top:16px}
+#ai-test-out{font-size:12.5px;color:var(--ink-2)}
+.ai-cors-note{font-size:12px;color:var(--ink-3);margin-top:12px;line-height:1.7}
+.ai-cors-note code{font-family:var(--mono);font-size:11.5px;background:var(--stone);padding:1px 5px;border-radius:2px}
+@media (max-width:560px){ .ai-msg{max-width:96%} .ai-input-row{flex-direction:row} }

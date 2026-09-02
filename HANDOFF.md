@@ -85,3 +85,24 @@ v1.0 已达成（207），扩馆不封顶。已验证好写、来源充分的候
 2. `validate.py` 全绿；`build.py` 后站点可跑
 3. 首页/长廊/词条页/时间轴/测验五个视图都正常
 4. 语气克制、不煽情不消费死者；「AI 生成+来源可查」的身份标注保留在页脚
+
+## 七、AI 接入层（2026-09-03 新增，两条路互不依赖）
+
+### 1. MCP Server（给 LLM 客户端的数据接口）
+- `mcp/server.py`：零依赖 Python stdio MCP（JSON-RPC 2.0，逐行消息），已冒烟验证握手/工具/中文
+- 5 个工具：`search_entries`（中文自动拆二元词）/ `get_entry`（含四段叙事+圆桌+来源）/ `list_entries`（过滤+分页）/ `random_entry` / `get_stats`
+- 数据源优先 `site/data/db.json`，缺了自动回退 `data/entries/*.json`
+- 接入：项目根 `.mcp.json` 已配好（ZCode 开箱即用）；Claude Desktop / Cursor 配置见 `mcp/README.md`
+
+### 2. 网页 AI 问事处（BYOK 浏览器直连，站点导航「AI 问答」）
+- `site/js/ai.js`（约 300 行）：配置面板（服务商预设：智谱/DeepSeek/Kimi/通义/OpenAI/OpenRouter/自定义，OpenAI 兼容接口）+ 问答区
+- 密钥/配置存 localStorage（`m404-ai-cfg`），对话存 `m404-ai-chat`，请求浏览器直发服务商，**不经任何服务器**（纯静态站没有后端）
+- 提问时前端在 index.json 检索 top6 相关词条（名称/别名/标签/碑文加权），把考据全文注入 system 上下文；回答后挂「依据馆藏」词条链接 chips
+- 流式 SSE 解析 + 非 stream 回退 + AbortController 停止 + IME Enter 防误发
+- 词条页 AI 圆桌下有「就此碑询问 AI 讲解员」按钮，经 sessionStorage `m404-ai-prefill` 自动带入提问
+- 空手试水：`python scripts/mock_llm.py`（假 LLM，端口 8123），Base URL 填 `http://127.0.0.1:8123/v1`
+- 已浏览器端到端验证：配置保存→测试连接→检索注入→流式渲染→引用 chips→词条页追问入口
+- 部署注意：Pages 是纯静态，AI 问事处随 `wrangler pages deploy site` 直接上线；CORS 由各服务商决定，报跨域时换服务商或自建代理
+
+### 关键坑
+- **跨脚本全局**：ESM 之外的 `const X=...` 不会挂 `window`，app.js 路由钩子必须用 `window.M404AI`，所以 ai.js 用 `window.M404AI = (...)()` 赋值式声明

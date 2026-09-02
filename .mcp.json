@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "museum-404": {
+      "command": "python",
+      "args": ["mcp/server.py"],
+      "env": {}
+    }
+  }
+}
