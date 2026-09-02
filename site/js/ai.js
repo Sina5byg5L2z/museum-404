@@ -1,8 +1,9 @@
 /* 404 博物馆 · AI 问事处
-   BYOK：密钥只存浏览器 localStorage，请求由浏览器直连 OpenAI 兼容接口。
-   提问时先在馆藏 index 里检索相关词条，把考据全文注入上下文再问模型。 */
+   聊天式界面：全屏高度、输入框钉底；会话历史存 IndexedDB（db: m404-ai / store: sessions）；
+   回答用零依赖 markdown 渲染器（先整体转义再做白名单变换，防 XSS）。
+   BYOK：密钥只存 localStorage，请求由浏览器直连 OpenAI 兼容接口。 */
 window.M404AI = (() => {
-  const LSC='m404-ai-cfg', LSH='m404-ai-chat';
+  const LSC='m404-ai-cfg', LSH='m404-ai-chat', LS_LAST='m404-ai-last';
   const PRESETS = {
     siliconflow:{nm:'硅基流动 SiliconFlow', base:'https://api.siliconflow.cn/v1', model:'Qwen/Qwen3-8B'},
     mimo:      {nm:'小米 MiMo',      base:'https://api.xiaomimimo.com/v1', model:'mimo-v2-flash'},
@@ -36,7 +37,7 @@ window.M404AI = (() => {
 2. 馆藏资料没覆盖的：先说明本馆未收录相关词条，再可基于公开常识简短补充，并注明那部分不是馆藏考据。
 3. 不编造日期、数字与来源；馆藏资料互相冲突时要指出。
 4. 风格温和、有讲解员的考据感，可用「碑」「扫墓」的意象，不煽情不夸张。
-5. 用中文回答，篇幅适中。`;
+5. 用中文回答。可以用 markdown 组织内容（小标题、列表、表格、加粗），但不要用一级二级标题。`;
   const SAMPLES = [
     '音乐产品里,哪些是被版权大战拖垮的?',
     '共享单车大战,钱是怎么烧没的?',
@@ -44,13 +45,78 @@ window.M404AI = (() => {
   ];
   const SUGGEST_FIXED = ['千团大战谁赢了?','有哪些死掉的搜索引擎?','P2P 是怎么崩的?'];
 
-  let msgs=[], sending=false, ctrl=null;
+  let sending=false, ctrl=null, rafPending=false;
+  let cur=null, list=[];   /* 当前会话 & 会话索引（IndexedDB 镜像） */
 
   /* ---------- 配置 ---------- */
   const getCfg = () => {
     try{ return JSON.parse(localStorage.getItem(LSC)) || {}; }catch{ return {}; }
   };
   const hasCfg = () => { const c=getCfg(); return !!(c.baseUrl && c.model); };
+
+  /* ---------- IndexedDB（会话历史） ---------- */
+  let idbP=null;
+  const idb = () => idbP || (idbP = new Promise((res,rej)=>{
+    const q=indexedDB.open('m404-ai',1);
+    q.onupgradeneeded=()=>{ q.result.createObjectStore('sessions',{keyPath:'id'}); };
+    q.onsuccess=()=>res(q.result);
+    q.onerror=()=>rej(q.error);
+  }));
+  const idbAll = async () => {
+    const d=await idb();
+    return new Promise((res,rej)=>{
+      const r=d.transaction('sessions').objectStore('sessions').getAll();
+      r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error);
+    });
+  };
+  const idbPut = async (s) => {
+    const d=await idb();
+    return new Promise((res,rej)=>{
+      const r=d.transaction('sessions','readwrite').objectStore('sessions').put(s);
+      r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+    });
+  };
+  const idbDel = async (id) => {
+    const d=await idb();
+    return new Promise((res,rej)=>{
+      const r=d.transaction('sessions','readwrite').objectStore('sessions').delete(id);
+      r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);
+    });
+  };
+
+  /* ---------- 会话管理 ---------- */
+  const newSession = () => ({
+    id:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),
+    title:'新对话', createdAt:Date.now(), updatedAt:Date.now(), msgs:[],
+  });
+  async function loadState(){
+    try{ list=(await idbAll()).sort((a,b)=>b.updatedAt-a.updatedAt); }catch{ list=[]; }
+    /* 旧版 localStorage 对话迁移进 IndexedDB */
+    let migrated=null;
+    try{
+      const old=JSON.parse(localStorage.getItem(LSH)||'null');
+      if(Array.isArray(old)&&old.length){
+        const s=newSession();
+        const fu=old.find(m=>m.role==='user');
+        s.title=fu?fu.content.slice(0,24):'旧对话';
+        s.msgs=old.filter(m=>m&&m.role&&typeof m.content==='string');
+        await idbPut(s); list.push(s); list.sort((a,b)=>b.updatedAt-a.updatedAt);
+        localStorage.removeItem(LSH);
+        migrated=s;
+      }
+    }catch{}
+    const last=localStorage.getItem(LS_LAST);
+    cur=list.find(s=>s.id===last)||(migrated&&list.find(s=>s.id===migrated.id))||null;
+  }
+  async function saveCur(){
+    if(!cur||!cur.msgs.length) return;
+    cur.updatedAt=Date.now();
+    const fu=cur.msgs.find(m=>m.role==='user');
+    if(fu) cur.title=fu.content.slice(0,30);
+    try{ await idbPut(cur); }catch{}
+    list=[cur,...list.filter(s=>s.id!==cur.id)].sort((a,b)=>b.updatedAt-a.updatedAt);
+    localStorage.setItem(LS_LAST,cur.id);
+  }
 
   /* ---------- 检索 ---------- */
   function tokenize(q){
@@ -92,31 +158,88 @@ window.M404AI = (() => {
     return `馆藏共 ${entries.length} 座碑（词条），卒年跨度 ${yrs[0]||'?'}–${yrs[yrs.length-1]||'?'}。词条字段：名称/别名/生卒年/死因/碑文/四段考据叙事（诞生、巅峰、转折、终局）/名场面/AI圆桌复盘/遗产/新闻来源。`;
   }
 
+  /* ---------- 零依赖 markdown 渲染（先转义后变换，输出仅白名单标签） ---------- */
+  function mdInline(s){
+    return s
+      .replace(/`([^`]+)`/g,'<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>')
+      .replace(/~~([^~]+)~~/g,'<del>$1</del>')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|\/[^)\s]*|#[^)\s]*)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  }
+  function md(src){
+    const lines=esc(String(src||'')).replace(/\r\n?/g,'\n').split('\n');
+    const out=[]; let pbuf=[], code=[], inCode=false;
+    const flushP=()=>{ if(pbuf.length){ out.push('<p>'+mdInline(pbuf.join('<br>'))+'</p>'); pbuf=[]; } };
+    let i=0;
+    while(i<lines.length){
+      const ln=lines[i];
+      if(/^\s*```/.test(ln)){
+        flushP();
+        if(!inCode){ inCode=true; code=[]; }
+        else{ inCode=false; out.push('<pre><code>'+code.join('\n')+'</code></pre>'); }
+        i++; continue;
+      }
+      if(inCode){ code.push(ln); i++; continue; }
+      if(/^\s*\|.*\|\s*$/.test(ln) && i+1<lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i+1])){
+        flushP();
+        const cells=r=>r.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+        const head=cells(ln); i+=2; const rows=[];
+        while(i<lines.length&&/^\s*\|.*\|\s*$/.test(lines[i])){ rows.push(cells(lines[i])); i++; }
+        out.push('<table><thead><tr>'+head.map(h=>'<th>'+mdInline(h)+'</th>').join('')+'</tr></thead><tbody>'
+          +rows.map(r=>'<tr>'+r.map(c=>'<td>'+mdInline(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>');
+        continue;
+      }
+      const h=ln.match(/^(#{1,4})\s+(.*)/);
+      if(h){ flushP(); const lv=Math.min(h[1].length+2,6); out.push(`<h${lv}>`+mdInline(h[2].replace(/^#+\s*/,''))+`</h${lv}>`); i++; continue; }
+      if(/^\s*(?:-\s*){3,}$|^\s*(?:\*\s*){3,}$|^\s*(_\s*){3,}$/.test(ln)){ flushP(); out.push('<hr>'); i++; continue; }
+      if(/^&gt;\s?/.test(ln)){
+        flushP(); const q=[];
+        while(i<lines.length&&/^&gt;\s?/.test(lines[i])){ q.push(lines[i].replace(/^&gt;\s?/,'')); i++; }
+        out.push('<blockquote>'+mdInline(q.join('<br>'))+'</blockquote>');
+        continue;
+      }
+      if(/^\s*([-*+]|\d+[.、)])\s+/.test(ln)){
+        flushP();
+        const ordered=/^\s*\d/.test(ln); const items=[];
+        while(i<lines.length&&/^\s*([-*+]|\d+[.、)])\s+/.test(lines[i])){
+          items.push(lines[i].replace(/^\s*([-*+]|\d+[.、)])\s+/,'')); i++;
+          while(i<lines.length&&/^\s{2,}\S/.test(lines[i])&&!/^\s*([-*+]|\d+[.、)])\s+/.test(lines[i])){ items[items.length-1]+=' '+lines[i].trim(); i++; }
+        }
+        out.push((ordered?'<ol>':'<ul>')+items.map(it=>'<li>'+mdInline(it)+'</li>').join('')+(ordered?'</ol>':'</ul>'));
+        continue;
+      }
+      if(!ln.trim()){ flushP(); i++; continue; }
+      pbuf.push(ln); i++;
+    }
+    if(inCode) out.push('<pre><code>'+code.join('\n')+'</code></pre>');
+    flushP();
+    return out.join('');
+  }
+
   /* ---------- 视图 ---------- */
   async function view(){
-    const entries=await idx();
+    if(!cur) await loadState();
     $app.innerHTML=nav('#/ai')+`
-    <section class="sec ai-sec"><div class="wrap">
-      <h2>AI 问事处</h2>
-      <p class="desc">向 AI 讲解员打听馆藏的往事。每问一句，它先在 ${entries.length} 座碑里翻检考据，再依据馆藏作答；馆藏没收录的，它会如实相告。</p>
-      <div class="ai-head">
+    <div class="ai-shell">
+      <div class="ai-toolbar">
+        <button class="btn sm" id="ai-new">＋ 新对话</button>
+        <button class="btn sm" id="ai-hist">历史对话</button>
         <span class="ai-chip" id="ai-chip"></span>
         <span style="flex:1"></span>
-        <button class="btn sm" id="ai-clear">清空对话</button>
         <button class="btn sm" id="ai-cfg">接入配置</button>
       </div>
       <div class="ai-msgs" id="ai-msgs"></div>
-      <div class="ai-suggest" id="ai-suggest"></div>
-      <div class="ai-input-row">
-        <textarea id="ai-in" rows="1" placeholder="问问看:哪些音乐产品死于版权大战?"></textarea>
-        <button class="btn primary" id="ai-send">提问</button>
+      <div class="ai-dock">
+        <div class="ai-suggest" id="ai-suggest"></div>
+        <div class="ai-input-row">
+          <textarea id="ai-in" rows="1" placeholder="问问看:哪些音乐产品死于版权大战?"></textarea>
+          <button class="btn primary" id="ai-send">提问</button>
+        </div>
+        <p class="ai-note">密钥只存你的浏览器（localStorage），请求由浏览器直发服务商 · 对话历史存 IndexedDB，仅在本机 · AI 可能出错，重要事实请核对词条页引用来源。</p>
       </div>
-      <p class="ai-note">密钥只存你的浏览器（localStorage），请求由浏览器直发服务商，不经本站服务器 · 对话记录仅存本地 · AI 可能出错，重要事实请核对词条页引用来源。</p>
-    </div></section>`;
-    loadHistory();
-    renderMsgs();
-    renderChip();
-    renderSuggest();
+    </div>`;
+    renderChip(); renderSuggest(); renderMsgs();
     const inp=document.getElementById('ai-in'), sendBtn=document.getElementById('ai-send');
     sendBtn.onclick=()=>{ sending?stop():send(); };
     inp.addEventListener('input',()=>grow(inp));
@@ -124,47 +247,47 @@ window.M404AI = (() => {
       if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); if(!sending) send(); }
     });
     document.getElementById('ai-cfg').onclick=()=>openSettings();
-    document.getElementById('ai-clear').onclick=()=>{
-      if(msgs.length && !confirm('清空这段对话？')) return;
-      msgs=[]; localStorage.removeItem(LSH); renderMsgs(); renderSuggest();
-    };
-    /* 词条页追问入口带来的预设问题 */
+    document.getElementById('ai-new').onclick=newChat;
+    document.getElementById('ai-hist').onclick=openDrawer;
     const pre=sessionStorage.getItem('m404-ai-prefill');
     if(pre){ sessionStorage.removeItem('m404-ai-prefill'); inp.value=pre; grow(inp); if(hasCfg()) send(); else openSettings(); }
     else inp.focus();
   }
 
-  function loadHistory(){
-    try{ msgs=JSON.parse(localStorage.getItem(LSH))||[]; }catch{ msgs=[]; }
-    msgs=msgs.filter(m=>m&&m.role&&typeof m.content==='string');
-  }
-  function saveHistory(){ localStorage.setItem(LSH, JSON.stringify(msgs.slice(-60))); }
-
   function renderChip(){
     const c=getCfg(), el=document.getElementById('ai-chip');
-    el.textContent = hasCfg() ? `已接入 · ${c.model} @ ${c.baseUrl.replace(/^https?:\/\//,'').replace(/\/+$/,'')}` : '未接入 AI · 点「接入配置」开始';
+    if(!el) return;
+    el.textContent = hasCfg() ? `${c.model} @ ${c.baseUrl.replace(/^https?:\/\//,'').replace(/\/+$/,'')}` : '未接入 AI · 点「接入配置」开始';
     el.classList.toggle('off', !hasCfg());
   }
   function renderSuggest(){
     const box=document.getElementById('ai-suggest');
     if(!box) return;
-    if(msgs.length){ box.innerHTML=''; return; }
-    box.innerHTML='<span class="ai-suggest-label">可以问——</span>'+
-      [...SAMPLES,...SUGGEST_FIXED].map(s=>`<button class="ai-chip-q">${esc(s)}</button>`).join('');
+    const empty=!cur||!cur.msgs.length;
+    box.innerHTML = empty
+      ? '<span class="ai-suggest-label">可以问——</span>'+[...SAMPLES,...SUGGEST_FIXED].map(s=>`<button class="ai-chip-q">${esc(s)}</button>`).join('')
+      : '';
     box.querySelectorAll('.ai-chip-q').forEach(b=>b.onclick=()=>{
       const inp=document.getElementById('ai-in'); inp.value=b.textContent; grow(inp); send();
     });
   }
   function renderMsgs(){
-    const box=document.getElementById('ai-msgs'); box.innerHTML='';
-    msgs.forEach(m=>appendBubble(m));
+    const box=document.getElementById('ai-msgs'); if(!box) return;
+    box.innerHTML='';
+    if(!cur||!cur.msgs.length){
+      box.innerHTML='<div class="ai-empty">馆内请随意提问<br><small>每一句，讲解员都会先翻一遍 207 座碑的考据</small></div>';
+      return;
+    }
+    cur.msgs.forEach(m=>appendBubble(m));
     scrollBottom(true);
   }
   function appendBubble(m){
     const box=document.getElementById('ai-msgs');
     const el=document.createElement('div'); el.className='ai-msg '+m.role+(m.error?' err':'');
     const who=document.createElement('div'); who.className='ai-who'; who.textContent=m.role==='user'?'你':'讲解员';
-    const body=document.createElement('div'); body.className='ai-body'+(m.content?'':' typing'); body.textContent=m.content||'';
+    const body=document.createElement('div'); body.className='ai-body'+(m.content?'':' typing');
+    if(m.role==='assistant') body.innerHTML=md(m.content||'');
+    else body.textContent=m.content||'';
     const cites=document.createElement('div'); cites.className='ai-cites';
     if(m.content&&m.cites&&m.cites.length) cites.innerHTML='依据馆藏: '+m.cites.map(c=>`<a href="#/e/${c.id}">${esc(c.name)}</a>`).join(' · ');
     el.append(who,body,cites); box.append(el);
@@ -174,7 +297,7 @@ window.M404AI = (() => {
     const box=document.getElementById('ai-msgs');
     if(box) box.scrollTop=box.scrollHeight;
   }
-  function grow(t){ t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,140)+'px'; }
+  function grow(t){ t.style.height='auto'; t.style.height=Math.min(t.scrollHeight,180)+'px'; }
   function setSendingUI(on){
     const btn=document.getElementById('ai-send'); if(btn) btn.textContent=on?'停止':'提问';
   }
@@ -185,22 +308,31 @@ window.M404AI = (() => {
     const inp=document.getElementById('ai-in');
     const text=inp.value.trim(); if(!text) return;
     if(!hasCfg()){ openSettings(); return; }
+    if(!cur) cur=newSession();
     inp.value=''; grow(inp);
-    msgs.push({role:'user',content:text});
-    renderSuggest();
-    appendBubble(msgs[msgs.length-1]); scrollBottom(true);
+    cur.msgs.push({role:'user',content:text});
+    renderSuggest(); appendBubble(cur.msgs[cur.msgs.length-1]); scrollBottom(true);
+    saveCur();
     await callLLM(text);
   }
   function stop(){ if(ctrl) ctrl.abort(); }
+  async function newChat(){
+    if(sending) return;
+    await saveCur();
+    cur=newSession();
+    renderMsgs(); renderSuggest();
+    const inp=document.getElementById('ai-in'); if(inp) inp.focus();
+  }
 
   async function callLLM(q){
     const cfg=getCfg();
     sending=true; setSendingUI(true); ctrl=new AbortController();
-    const prior=msgs.slice(0,-1).filter(m=>!m.error).slice(-12)
+    const prior=cur.msgs.slice(0,-1).filter(m=>!m.error).slice(-12)
       .map(m=>({role:m.role,content:m.content}));
     const a={role:'assistant',content:'',cites:[]};
-    msgs.push(a);
+    cur.msgs.push(a);
     const {body,cites}=appendBubble(a); scrollBottom(true);
+    const paint=()=>{ body.innerHTML=md(a.content); scrollBottom(); };
     try{
       const entries=await idx();
       const hits=retrieve(entries,q);
@@ -239,8 +371,12 @@ window.M404AI = (() => {
             if(!data||data==='[DONE]') continue;
             try{
               const j=JSON.parse(data);
-              const d=j.choices&&j.choices[0]&&(j.choices[0].delta&&j.choices[0].delta.content||j.choices[0].message&&j.choices[0].message.content);
-              if(d){ a.content+=d; body.textContent=a.content; body.classList.remove('typing'); scrollBottom(); }
+              const ch=j.choices&&j.choices[0];
+              const d=ch&&(ch.delta&&ch.delta.content||ch.message&&ch.message.content);
+              if(d){
+                a.content+=d; body.classList.remove('typing');
+                if(!rafPending){ rafPending=true; requestAnimationFrame(()=>{ rafPending=false; paint(); }); }
+              }
             }catch{}
           }
         }
@@ -251,16 +387,14 @@ window.M404AI = (() => {
       if(!a.content) a.content='（服务端没有返回内容，检查模型名是否正确。）';
     }catch(ex){
       a.error=true;
-      a.content = ex.name==='AbortError'
-        ? '—— 已停止 ——'
-        : '⚠️ '+ex.message;
+      a.content = ex.name==='AbortError' ? '—— 已停止 ——' : '⚠️ '+ex.message;
     }
+    paint();
     body.classList.remove('typing');
-    body.textContent=a.content;
     body.parentElement.classList.toggle('err',!!a.error);
     if(a.content&&a.cites&&a.cites.length)
       cites.innerHTML='依据馆藏: '+a.cites.map(c=>`<a href="#/e/${c.id}">${esc(c.name)}</a>`).join(' · ');
-    saveHistory();
+    await saveCur();
     sending=false; ctrl=null; setSendingUI(false); scrollBottom();
   }
   function hintFor(status,t){
@@ -269,6 +403,53 @@ window.M404AI = (() => {
       429:'被限流了（429），稍后再试。'};
     if(map[status]) return map[status];
     return `服务端报错 HTTP ${status}。${t?esc(t.slice(0,180)):'请检查配置。'}`;
+  }
+
+  /* ---------- 历史会话抽屉 ---------- */
+  function openDrawer(){
+    let d=document.getElementById('ai-drawer');
+    if(!d){
+      d=document.createElement('div'); d.id='ai-drawer'; d.className='ai-drawer-mask'; d.hidden=true;
+      d.innerHTML=`<aside class="ai-drawer" role="dialog" aria-label="历史对话">
+        <div class="ai-drawer-head"><span>历史对话</span><button class="ai-x" id="ai-drawer-x" aria-label="关闭">×</button></div>
+        <div class="ai-hist-list" id="ai-hist-list"></div>
+      </aside>`;
+      document.body.append(d);
+      d.addEventListener('click',e=>{ if(e.target===d) d.hidden=true; });
+      document.getElementById('ai-drawer-x').onclick=()=>d.hidden=true;
+    }
+    renderHist();
+    d.hidden=false;
+  }
+  function renderHist(){
+    const box=document.getElementById('ai-hist-list'); if(!box) return;
+    if(!list.length){ box.innerHTML='<div class="ai-hist-empty">还没有历史对话。<br>问出第一句就有了。</div>'; return; }
+    box.innerHTML=list.map(s=>`<div class="ai-hist-item ${cur&&s.id===cur.id?'on':''}" data-id="${s.id}">
+      <div class="ai-hist-t"><div class="ai-hist-title">${esc(s.title)}</div>
+      <div class="ai-hist-time">${new Date(s.updatedAt).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})} · ${s.msgs.length} 条</div></div>
+      <button class="ai-hist-del" data-del="${s.id}" title="删除这段对话">×</button></div>`).join('');
+    box.querySelectorAll('.ai-hist-item').forEach(it=>it.onclick=e=>{
+      if(e.target.dataset.del) return;
+      switchTo(it.dataset.id);
+    });
+    box.querySelectorAll('.ai-hist-del').forEach(b=>b.onclick=async e=>{
+      e.stopPropagation();
+      const id=b.dataset.del;
+      if(!confirm('删除这段对话？不可恢复。')) return;
+      await idbDel(id);
+      list=list.filter(s=>s.id!==id);
+      if(cur&&cur.id===id){ cur=list[0]||null; if(cur) localStorage.setItem(LS_LAST,cur.id); else localStorage.removeItem(LS_LAST); renderMsgs(); renderSuggest(); }
+      renderHist();
+    });
+  }
+  async function switchTo(id){
+    if(sending) return;
+    if(cur&&cur.id===id){ document.getElementById('ai-drawer').hidden=true; return; }
+    await saveCur();
+    cur=list.find(s=>s.id===id)||null;
+    if(cur) localStorage.setItem(LS_LAST,cur.id);
+    document.getElementById('ai-drawer').hidden=true;
+    renderMsgs(); renderSuggest();
   }
 
   /* ---------- 接入配置（管理面板） ---------- */
@@ -310,7 +491,7 @@ window.M404AI = (() => {
         document.getElementById('ai-eye').textContent=k.type==='password'?'显示':'隐藏';
       };
       document.getElementById('ai-restore').onclick=()=>{
-        document.getElementById('ai-sys').value=''; fillForm(Object.assign(getCfg(),{system:''}));
+        document.getElementById('ai-sys').value='';
         document.getElementById('ai-sys').placeholder='已还原为默认，保存即可生效';
       };
       document.getElementById('ai-test').onclick=testConn;

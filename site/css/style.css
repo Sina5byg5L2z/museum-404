@@ -332,42 +332,89 @@ footer .mono{font-family:var(--mono);font-size:11px;letter-spacing:.1em}
   .seal.stamp,.seal.big.stamp,.quiz-result .seal.tall.stamp{animation:none}
   .card,.card .v-wrap .seal,.star,.dot{transition:none}
 }
-
 /* ============================================================
-   AI 问事处 · BYOK 浏览器直连
+   AI 问事处 · 全屏聊天界面（BYOK 浏览器直连）
    ============================================================ */
-.ai-sec .wrap{max-width:820px}
-.ai-head{display:flex;align-items:center;gap:10px;margin:18px 0 12px;flex-wrap:wrap}
-.ai-chip{font-family:var(--mono);font-size:12px;color:var(--jade);border:1px solid var(--jade);
-  padding:4px 10px;border-radius:3px;background:rgba(94,114,104,.08)}
-.ai-chip.off{color:var(--ink-3);border-color:var(--line);background:none}
+.ai-shell{height:calc(100vh - 58px);display:flex;flex-direction:column;max-width:880px;margin:0 auto;padding:0 18px}
+.ai-toolbar{display:flex;align-items:center;gap:8px;padding:12px 0 6px;flex-wrap:wrap}
 .btn.sm{padding:5px 14px;font-size:13px}
-.ai-msgs{border:1px solid var(--line);background:var(--paper-hi);border-radius:4px;
-  height:min(52vh,460px);overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
-.ai-msg{display:flex;flex-direction:column;max-width:88%}
+.ai-chip{font-family:var(--mono);font-size:12px;color:var(--jade);border:1px solid var(--jade);
+  padding:4px 10px;border-radius:3px;background:rgba(94,114,104,.08);max-width:46vw;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.ai-chip.off{color:var(--ink-3);border-color:var(--line);background:none}
+
+.ai-msgs{flex:1;overflow-y:auto;padding:10px 4px 18px;display:flex;flex-direction:column;gap:16px}
+.ai-empty{margin:auto;text-align:center;color:var(--ink-3);font-family:var(--serif);letter-spacing:3px;line-height:2.4}
+.ai-empty small{letter-spacing:1px;font-family:var(--sans)}
+.ai-msg{max-width:88%;display:flex;flex-direction:column}
 .ai-msg.user{align-self:flex-end;align-items:flex-end}
 .ai-who{font-size:11px;color:var(--ink-3);letter-spacing:2px;margin:0 4px 4px;font-family:var(--serif)}
 .ai-msg.user .ai-who{color:var(--seal)}
-.ai-body{padding:10px 14px;border-radius:4px;font-size:14.5px;line-height:1.85;white-space:pre-wrap;
-  word-break:break-word}
-.ai-msg.user .ai-body{background:var(--ink);color:var(--paper-hi);border-bottom-right-radius:1px}
-.ai-msg.assistant .ai-body{background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--seal);
+.ai-body{padding:10px 14px;border-radius:4px;font-size:14.5px;line-height:1.85;word-break:break-word}
+.ai-msg.user .ai-body{background:var(--ink);color:var(--paper-hi);white-space:pre-wrap;border-bottom-right-radius:1px}
+.ai-msg.assistant .ai-body{background:var(--paper-hi);border:1px solid var(--line);border-left:3px solid var(--seal);
   border-bottom-left-radius:1px}
 .ai-msg.err .ai-body{border-left-color:var(--gold);color:#7A4A12;background:#F3EDDD}
+.ai-body.typing{min-height:38px}
 .ai-body.typing:after{content:"▍";color:var(--seal);animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:0}}
+
+/* markdown 渲染 */
+.ai-body p{margin:6px 0}
+.ai-body p:first-child{margin-top:0}
+.ai-body p:last-child{margin-bottom:0}
+.ai-body h3,.ai-body h4,.ai-body h5,.ai-body h6{font-family:var(--serif);letter-spacing:1px;margin:12px 0 4px}
+.ai-body h3{font-size:16.5px}.ai-body h4{font-size:15px}.ai-body h5,.ai-body h6{font-size:14px}
+.ai-body ul,.ai-body ol{margin:6px 0;padding-left:1.5em}
+.ai-body li{margin:2px 0}
+.ai-body code{font-family:var(--mono);font-size:.9em;background:var(--stone);padding:1px 5px;border-radius:3px}
+.ai-body pre{background:#2B2822;color:var(--paper);padding:12px 14px;border-radius:4px;overflow-x:auto;margin:8px 0}
+.ai-body pre code{background:none;padding:0;color:inherit;font-size:12.5px;line-height:1.6}
+.ai-body blockquote{border-left:3px solid var(--gold);background:rgba(150,116,47,.08);
+  padding:6px 12px;margin:8px 0;color:var(--ink-2)}
+.ai-body table{border-collapse:collapse;margin:8px 0;font-size:13px;width:100%}
+.ai-body th,.ai-body td{border:1px solid var(--line);padding:5px 9px;text-align:left}
+.ai-body th{background:var(--stone);font-family:var(--serif)}
+.ai-body hr{border:none;border-top:1px dashed var(--line);margin:10px 0}
+.ai-body a{color:var(--seal)}
 .ai-cites{font-size:12px;color:var(--ink-3);margin-top:6px;padding:0 4px}
 .ai-cites a{margin-right:2px}
-.ai-input-row{display:flex;gap:10px;margin-top:12px;align-items:flex-end}
-.ai-input-row textarea{flex:1;resize:none;border:1px solid var(--line);background:var(--paper-hi);
-  border-radius:4px;padding:11px 14px;font:inherit;font-size:14.5px;line-height:1.6;color:var(--ink);min-height:46px}
-.ai-input-row textarea:focus{border-color:var(--ink-3);outline:none}
-.ai-suggest{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+
+/* 输入区（钉底） */
+.ai-dock{padding:4px 0 12px}
+.ai-suggest{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.ai-suggest:empty{margin:0}
 .ai-suggest-label{font-size:12px;color:var(--ink-3);font-family:var(--serif);letter-spacing:1px}
 .ai-chip-q{border:1px dashed var(--line);background:none;color:var(--ink-2);border-radius:3px;
   padding:4px 12px;font-size:12.5px;cursor:pointer}
 .ai-chip-q:hover{border-color:var(--seal);color:var(--seal)}
-.ai-note{font-size:12px;color:var(--ink-3);margin-top:10px;text-align:center}
+.ai-input-row{display:flex;gap:8px;align-items:flex-end;background:var(--paper-hi);border:1px solid var(--line);
+  border-radius:6px;padding:8px 8px 8px 12px;box-shadow:0 4px 16px rgba(33,30,25,.08)}
+.ai-input-row textarea{flex:1;border:none;background:none;resize:none;font:inherit;font-size:14.5px;
+  line-height:1.6;color:var(--ink);max-height:180px;padding:6px 2px;outline:none}
+.ai-input-row .btn{flex:none}
+.ai-note{font-size:11.5px;color:var(--ink-3);margin-top:6px;text-align:center}
+
+/* ---------- 历史会话抽屉 ---------- */
+.ai-drawer-mask{position:fixed;inset:0;z-index:150;background:rgba(33,30,25,.35);backdrop-filter:blur(1px)}
+.ai-drawer-mask[hidden]{display:none}
+.ai-drawer{position:absolute;left:0;top:0;bottom:0;width:min(320px,86vw);background:var(--paper-hi);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;box-shadow:8px 0 30px rgba(33,30,25,.18)}
+.ai-drawer-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
+  border-bottom:1px solid var(--line);font-family:var(--serif);letter-spacing:2px}
+.ai-x{background:none;border:none;font-size:24px;line-height:1;color:var(--ink-3);cursor:pointer;padding:2px 6px}
+.ai-x:hover{color:var(--seal)}
+.ai-hist-list{flex:1;overflow-y:auto}
+.ai-hist-item{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;
+  border-bottom:1px solid rgba(200,196,184,.45)}
+.ai-hist-item:hover{background:var(--paper)}
+.ai-hist-item.on{background:var(--paper);box-shadow:inset 3px 0 0 var(--seal)}
+.ai-hist-t{flex:1;min-width:0}
+.ai-hist-title{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-hist-time{font-size:11px;color:var(--ink-3);font-family:var(--mono)}
+.ai-hist-del{background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:16px;padding:2px 6px;flex:none}
+.ai-hist-del:hover{color:var(--seal)}
+.ai-hist-empty{padding:40px 16px;color:var(--ink-3);font-size:13px;text-align:center;line-height:2}
 
 /* ---------- 配置弹窗 ---------- */
 #ai-mask{position:fixed;inset:0;z-index:200;background:rgba(33,30,25,.45);
@@ -378,8 +425,6 @@ footer .mono{font-family:var(--mono);font-size:11px;letter-spacing:.1em}
   padding:24px 26px;box-shadow:0 18px 50px rgba(33,30,25,.25)}
 .ai-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .ai-modal-head h3{font-family:var(--serif);font-size:19px;letter-spacing:2px}
-.ai-x{background:none;border:none;font-size:24px;line-height:1;color:var(--ink-3);cursor:pointer;padding:2px 6px}
-.ai-x:hover{color:var(--seal)}
 .ai-modal-sub{font-size:12.5px;color:var(--ink-3);margin-bottom:16px}
 .ai-f{display:block;font-size:13px;color:var(--ink-2);margin-bottom:13px}
 .ai-f input[type=text],.ai-f input[type=password],.ai-f input:not([type]),.ai-f select,.ai-f textarea{
@@ -396,4 +441,4 @@ footer .mono{font-family:var(--mono);font-size:11px;letter-spacing:.1em}
 #ai-test-out{font-size:12.5px;color:var(--ink-2)}
 .ai-cors-note{font-size:12px;color:var(--ink-3);margin-top:12px;line-height:1.7}
 .ai-cors-note code{font-family:var(--mono);font-size:11.5px;background:var(--stone);padding:1px 5px;border-radius:2px}
-@media (max-width:560px){ .ai-msg{max-width:96%} .ai-input-row{flex-direction:row} }
+@media (max-width:560px){ .ai-msg{max-width:96%} .ai-shell{padding:0 12px} }

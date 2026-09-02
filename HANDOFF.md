@@ -95,8 +95,10 @@ v1.0 已达成（207），扩馆不封顶。已验证好写、来源充分的候
 - 接入：项目根 `.mcp.json` 已配好（ZCode 开箱即用）；Claude Desktop / Cursor 配置见 `mcp/README.md`
 
 ### 2. 网页 AI 问事处（BYOK 浏览器直连，站点导航「AI 问答」）
-- `site/js/ai.js`（约 300 行）：配置面板（服务商预设：智谱/DeepSeek/Kimi/通义/OpenAI/OpenRouter/自定义，OpenAI 兼容接口）+ 问答区
-- 密钥/配置存 localStorage（`m404-ai-cfg`），对话存 `m404-ai-chat`，请求浏览器直发服务商，**不经任何服务器**（纯静态站没有后端）
+- `site/js/ai.js`：**聊天式界面**（全屏高度、输入框钉底）+ 配置面板（16 家预设：siliconflow 置顶含小米 MiMo/Ollama/LM Studio 本机等，OpenAI 兼容接口）
+- 密钥/配置存 localStorage（`m404-ai-cfg`）；**会话历史存 IndexedDB**（db `m404-ai` / store `sessions`），带历史抽屉（新建/切换/删除），旧版 localStorage 对话（`m404-ai-chat`）首次加载自动迁移
+- **回答经零依赖 markdown 渲染器**（`md()`：先整体 HTML 转义再做白名单变换——代码块/表格/列表/引用/加粗/链接，防 XSS），流式 rAF 节流重绘
+- 请求浏览器直发服务商，**不经任何服务器**（纯静态站没有后端）
 - 提问时前端在 index.json 检索 top6 相关词条（名称/别名/标签/碑文加权），把考据全文注入 system 上下文；回答后挂「依据馆藏」词条链接 chips
 - 流式 SSE 解析 + 非 stream 回退 + AbortController 停止 + IME Enter 防误发
 - 词条页 AI 圆桌下有「就此碑询问 AI 讲解员」按钮，经 sessionStorage `m404-ai-prefill` 自动带入提问

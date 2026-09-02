@@ -33,10 +33,15 @@ class Handler(BaseHTTPRequestHandler):
         sys_text = next((m.get("content", "") for m in msgs if m.get("role") == "system"), "")
         q = next((m.get("content", "") for m in reversed(msgs) if m.get("role") == "user"), "")
         names = [ln.split("】")[0].lstrip("【") for ln in sys_text.splitlines() if ln.startswith("【") and ln.count("】")]
-        reply = (f"收到你的提问:「{q}」。\n\n"
-                 f"本次从馆藏检索到 {len(names)} 座相关碑:{'、'.join(names) if names else '（无）'}。\n"
-                 "这是一条 mock 流式回答,证明:配置→检索→注入上下文→流式渲染 整条链路是通的。\n"
-                 "换成真的服务商密钥后,这里就是真讲解员在说话了。")
+        name_list = "、".join(names) if names else "（无）"
+        reply = (f"收到提问:**「{q}」**\n\n"
+                 f"本次从馆藏检索到 {len(names)} 座相关碑:\n\n"
+                 + "".join(f"- {n}\n" for n in names if n not in ("馆藏概况", "馆藏资料"))
+                 + f"\n`检索链路`:配置 → 检索 → 注入上下文 → 流式渲染 → **markdown 渲染** 全通。\n\n"
+                 "| 验证项 | 状态 |\n|---|---|\n| 流式输出 | ✅ |\n| md 渲染 | ✅ |\n| 表格 | ✅ |\n\n"
+                 "> mock 回答,仅供试水;换成真实服务商密钥后这里就是真讲解员。\n\n"
+                 "```python\nprint('馆藏名册:', '" + name_list[:60] + "')\n```\n\n"
+                 "试试词条页的「就此碑询问 AI 讲解员」按钮 →")
         stream = bool(body.get("stream"))
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream" if stream else "application/json")
